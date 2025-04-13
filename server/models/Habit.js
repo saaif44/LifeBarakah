@@ -24,14 +24,14 @@ const getHabitsByUser = async (userId) => {
 const checkInTask = async (taskId, userId, done, point, date) => {
   const result = await pool.query(
     'INSERT INTO task_checkins (task_id, user_id, done, point, date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-    [taskId, userId, done, point, date]
+    [taskId, userId, done, point || (done ? 1 : 0), date]
   );
   return result.rows[0];
 };
 
 const getTaskCheckins = async (userId, date) => {
   const result = await pool.query(
-    'SELECT * FROM task_checkins WHERE user_id = $1 AND date = $2',
+    `SELECT * FROM task_checkins WHERE user_id = $1 AND date = $2`,
     [userId, date]
   );
   return result.rows;
@@ -42,5 +42,5 @@ module.exports = {
   addHabitTask,
   getHabitsByUser,
   checkInTask,
-  getTaskCheckins,
+  getTaskCheckins
 };

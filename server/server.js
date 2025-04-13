@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const habitRoutes = require('./routes/habitRoutes');
 const pool = require('./config/db');
-const protect = require('./middleware/authMiddleware');
+// const protect = require('./middleware/authMiddleware');
 
 const app = express();
 dotenv.config();

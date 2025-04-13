@@ -1,8 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { createUser, findUserByEmail } = require('../models/User');
+const { createUser, findUserByEmail, updateUserDetails } = require('../models/User');
 const { createHabit, addHabitTask } = require('../models/Habit');
+const protect = require('../middleware/authMiddleware');
 require('dotenv').config();
 
 const router = express.Router();
@@ -64,6 +65,25 @@ router.post('/login', async (req, res) => {
     res.json({ token, user });
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });
+  }
+});
+
+router.get('/me', protect, async (req, res) => {
+  try {
+    const user = await findUserByEmail(req.user.email);
+    res.json({ id: user.id, name: user.name, age: user.age, gender: user.gender, email: user.email });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch user', error: err.message });
+  }
+});
+
+router.put('/update', protect, async (req, res) => {
+  const { name, age, gender } = req.body;
+  try {
+    const updatedUser = await updateUserDetails(req.user.id, name, age, gender);
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ message: 'Update failed', error: err.message });
   }
 });
 
