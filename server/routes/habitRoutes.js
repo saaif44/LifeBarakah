@@ -6,7 +6,7 @@ const {
   createHabit,
   addHabitTask,
   getHabitsByUser,
-  checkInTask,
+  toggleCheckIn ,
   getTaskCheckins
 } = require('../models/Habit');
 
@@ -34,15 +34,19 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-router.post('/checkin', protect, async (req, res) => {
-  const { taskId, done, point, date } = req.body;
+router.put('/task/checkin/:taskId', protect, async (req, res) => {
+  const taskId = req.params.taskId;
+  const userId = req.user.id;
+
   try {
-    const record = await checkInTask(taskId, req.user.id, done, point, date);
-    res.status(201).json(record);
+    const updated = await toggleCheckIn(taskId, userId);
+    res.status(200).json(updated);
   } catch (err) {
-    res.status(500).json({ message: 'Check-in failed', error: err.message });
+    res.status(500).json({ message: 'Check-in toggle failed', error: err.message });
   }
 });
+
+
 
 router.get('/checkins', protect, async (req, res) => {
   const date = req.query.date;
@@ -95,26 +99,78 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
-router.put('/task/:id', protect, async (req, res) => {
-  const { title } = req.body;
+router.put('/task/:taskId', protect, async (req, res) => {
+  const { task_title } = req.body;
+  const taskId = req.params.taskId;
+
+  if (!task_title) {
+    return res.status(400).json({ message: 'task_title is required' });
+  }
+
   try {
     const result = await pool.query(
       'UPDATE habit_tasks SET title = $1 WHERE id = $2 RETURNING *',
-      [title, req.params.id]
+      [task_title, taskId]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ message: 'Task update failed', error: err.message });
   }
 });
 
-router.delete('/task/:id', protect, async (req, res) => {
+
+
+
+// DELETE - delete a habit task
+router.delete('/task/:taskId', protect, async (req, res) => {
+  const taskId = req.params.taskId;
+
   try {
-    await pool.query('DELETE FROM habit_tasks WHERE id = $1', [req.params.id]);
+    await pool.query('DELETE FROM habit_tasks WHERE id = $1', [taskId]);
     res.json({ message: 'Task deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Task deletion failed', error: err.message });
   }
 });
+
+
+// Add a task to an existing habit
+router.post('/:habitId/tasks', protect, async (req, res) => {
+  const { habitId } = req.params;
+  const { task_title } = req.body;
+
+  if (!task_title) {
+    return res.status(400).json({ message: 'task_title is required' });
+  }
+
+  try {
+    // Check if the habit belongs to the current user
+    const habitCheck = await pool.query(
+      'SELECT * FROM habits WHERE id = $1 AND user_id = $2',
+      [habitId, req.user.id]
+    );
+
+    if (habitCheck.rowCount === 0) {
+      return res.status(404).json({ message: 'Habit not found or unauthorized' });
+    }
+
+    // Insert the new task
+    const result = await pool.query(
+      'INSERT INTO habit_tasks (habit_id, title) VALUES ($1, $2) RETURNING *',
+      [habitId, task_title]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to add task to habit', error: err.message });
+  }
+});
+
+
 
 module.exports = router;
