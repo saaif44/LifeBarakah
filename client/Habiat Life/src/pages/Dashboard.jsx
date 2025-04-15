@@ -1,10 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { FaSignOutAlt,FaTimes, FaUserCircle, FaEdit, FaTasks, FaListAlt, FaTrashAlt, FaPen,FaPlus } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard({ token, onLogout }) {
+  
   const [user, setUser] = useState(null);
   const [habits, setHabits] = useState({});
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const localDate = new Date();
+    localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset()); // Convert to local ISO
+    return localDate.toISOString().split('T')[0];
+  });
+  
+  // Helper to get today's local date string
+  const getLocalDateString = () => {
+    const local = new Date();
+    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+    return local.toISOString().split('T')[0];
+  };
+  
+  
+  const isToday = selectedDate === getLocalDateString();
+  
+  const [showTimeMachineWarning, setShowTimeMachineWarning] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -73,33 +91,27 @@ export default function Dashboard({ token, onLogout }) {
     }
   };
 
-  const handleCheckin = async (taskId, done) => {
+  const handleCheckin = async (taskId) => {
     if (editMode) return;
-  
+    // if (selectedDate!= isToday){
+    //   setShowTimeMachineWarning(true);
+    //   return;
+    // }
+    // setShowTimeMachineWarning(false);
     try {
-      // Optimistic UI update
-      setHabits(prev => {
-        const updated = { ...prev };
-        for (const habitTitle in updated) {
-          updated[habitTitle] = updated[habitTitle].map(task =>
-            task.task_id === taskId ? { ...task, done: task.done === null ? true : !task.done } : task
-          );
-        }
-        return updated;
-      });
-
-     // No payload, just a toggle
-     await fetch(`http://localhost:5000/api/habits/task/checkin/${taskId}`, {
+      await fetch(`http://localhost:5000/api/habits/task/checkin/${taskId}`, {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
   
-      fetchAllTasks(selectedDate); // Refresh to sync with backend
+      fetchAllTasks(selectedDate);
     } catch (err) {
       console.error('Check-in failed', err);
     }
   };
-
+  
   
 
   const handleDeleteHabit = async (habitId) => {
@@ -236,25 +248,10 @@ export default function Dashboard({ token, onLogout }) {
         },
         body: JSON.stringify({ task_title: newTaskTitle }),
       });
-      setEditingHabit(null);
+      // setEditingHabit(null);
       if (response.ok) {
         const newTask = await response.json();
-        
-        
-        // Wait for 0.1s before adding the new task to the state
-      
-        setHabits((prev) =>
-          Object.fromEntries(
-            Object.entries(prev).map(([title, tasks]) =>
-              tasks[0]?.habit_id === habitId
-                ? [title, [...tasks, newTask]] // Add the new task
-                : [title, tasks]
-            )
-          )
-        );
-     
-
-        
+                
         setNewTaskTitle('');
         setAddingTaskToHabitId(null);
 
@@ -266,9 +263,13 @@ export default function Dashboard({ token, onLogout }) {
       }
       
     } catch (err) {
-      console.error('Error adding task:', err.message);
+      console.error('Error adding tasey:', err.message);
     }
   };
+
+
+
+  
   
   console.log('User in handleAddTaskToHabit:', user);
 console.log('Token:', token);
@@ -288,41 +289,54 @@ console.log('Token:', token);
           <h1 className="text-2xl font-bold text-gray-800">Eat healthy and stay active</h1>
           <p className="text-gray-500 italic">“Build your habits, build your future.”</p>
         </div>
-
-        {/* Profile Icon */}
-        <div className="relative">
-          <button
-            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-            className="text-3xl text-orange-500 hover:scale-105 transition-transform"
-          >
-            🏈
-          </button>
-          {profileMenuOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-md z-10 p-3 space-y-2 text-sm">
-              <p className="text-center font-semibold text-gray-800">{user?.name || 'saif'}</p>
-              <hr />
-                <button
-                className="w-full text-left text-gray-700 hover:text-orange-500"
-                onClick={() => setShowEditProfile(true)}
-                >
-                <FaEdit className="inline mr-2" />edit profile
-                </button>
-
-
-                <button
-  className={`w-full text-left flex items-center ${
-    editMode ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'
-  }`}
-  onClick={() => setEditMode(!editMode)}
+    <div
+  className="relative"
+  tabIndex={0}
+  onBlur={() => setProfileMenuOpen(false)}
 >
-  <FaListAlt className="inline mr-2" />edit habit
-</button>
+  <button
+    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+    className="w-10 h-10 flex items-center justify-center bg-white text-orange-500 rounded-full shadow hover:scale-105 transition-transform"
+  >
+    🏈
+  </button>
 
-              {/* <button className="w-full text-left text-gray-700 hover:text-orange-500"><FaTasks className="inline mr-2" />edit tasks</button> */}
-              <button onClick={onLogout} className="w-full text-left text-red-500 hover:text-red-600"><FaSignOutAlt className="inline mr-2" />sign out</button>
-            </div>
-          )}
-        </div>
+  {profileMenuOpen && (
+    <div
+      className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-md z-10 p-3 space-y-2 text-sm"
+      onMouseDown={(e) => e.preventDefault()} // prevent onBlur from triggering immediately
+    >
+      <p className="text-center font-semibold text-gray-800">{user?.name || 'saif'}</p>
+      <hr />
+      <button
+        className="w-full text-left text-gray-700 hover:text-orange-500"
+        onClick={() => setShowEditProfile(true)}
+      >
+        <FaEdit className="inline mr-2" />
+        Edit Profile
+      </button>
+
+      <button
+        className={`w-full text-left flex items-center ${
+          editMode ? 'text-orange-500' : 'text-gray-700 hover:text-orange-500'
+        }`}
+        onClick={() => setEditMode(!editMode)}
+      >
+        <FaListAlt className="inline mr-2" />
+        Edit Habit
+      </button>
+
+      <button
+        onClick={onLogout}
+        className="w-full text-left text-red-500 hover:text-red-600"
+      >
+        <FaSignOutAlt className="inline mr-2" />
+        Sign Out
+      </button>
+    </div>
+  )}
+</div>
+
       </header>
 
       {/* Date Picker */}
@@ -341,6 +355,7 @@ console.log('Token:', token);
 {/* Habit List */}
 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
   {Object.entries(habits).map(([habitTitle, tasks]) => (
+    // {console.log(habitTitle, tasks);} 
     <div key={habitTitle} className="bg-white p-4 rounded-xl shadow">
       <div className="flex justify-between items-center mb-2">
   {editingHabit?.habit_id === tasks[0]?.habit_id ? (
@@ -412,15 +427,22 @@ console.log('Token:', token);
           >
             {!editMode ? (
               <button
-            //   key={task.task_id} 
-            key={task.task_id || `${habitTitle}-temp-${index}`}
-              onClick={() => handleCheckin(task.task_id, task.done)}
+              key={task.task_id}
+              onClick={() => {
+                if (isToday) {
+                  handleCheckin(task.task_id, task.done);
+                } else {
+                  alert("You can only complete today's tasks.");
+                }
+              }}
+              disabled={!isToday}
               className={`block w-full text-left px-4 py-2 rounded-md transition-all duration-200 ${
-                task.done ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-green-100'
+                !isToday ? 'cursor-not-allowed opacity-50' : ''
               }`}
             >
               {task.task_title}
             </button>
+            
             
             ) : (
               <>
@@ -447,7 +469,6 @@ console.log('Token:', token);
 )}
                 <div className="flex gap-2 ml-auto">
                   <button
-                    // ✅ Pass full task (has habit_id & task_id)
                     onClick={() => handleEditTask(task)}
                     className="text-blue-500 hover:text-blue-700"
                   >
@@ -511,26 +532,23 @@ console.log('Token:', token);
 
       </div>
     </div>
-  ))}
+))}
 
   
 
 </div>
 
 
+<div className="fixed bottom-6 right-6 flex flex-col items-center z-50">
+  <button
+    className="w-14 h-14 bg-blue-100 text-blue-500 text-3xl rounded-full shadow hover:scale-105 transition-all"
+    onClick={() => setShowAddHabit(true)}
+  >
+    +
+  </button>
+  <span className="mt-2 text-sm text-gray-600">Add Habit</span>
+</div>
 
-      {/* Add Habit Button */}
-      <div className="mt-10 flex justify-center">
-        <div className="flex flex-col items-center">
-          <button
-            className="w-14 h-14 bg-blue-100 text-blue-500 text-3xl rounded-full shadow hover:scale-105 transition-all"
-            onClick={() => setShowAddHabit(true)}
-          >
-            +
-          </button>
-          <span className="mt-2 text-sm text-gray-600">Add Habit</span>
-        </div>
-      </div>
 
       {/* Add Habit Modal */}
       {showAddHabit && (
