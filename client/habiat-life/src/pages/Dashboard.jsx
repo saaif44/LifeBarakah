@@ -244,7 +244,7 @@ export default function Dashboard({ token, onLogout }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-           Authorization: `Bearer ${token}` // Make sure user.token exists
+           Authorization: `Bearer ${token}` 
         },
         body: JSON.stringify({ task_title: newTaskTitle }),
       });
