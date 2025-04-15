@@ -1,7 +1,64 @@
 
 # 🧠 Habit Life — Full Stack Habit Tracker
 
-A minimalistic full-stack habit tracker web app to help users build and track positive routines like prayer, drinking water, workouts, and reading the Quran.
+A simple yet powerful full-stack habit tracker to help you build and stay consistent with healthy routines such as:
+- 🙏 Prayer (with 5 daily reminders)
+- 💧 Drinking Water
+- 🏃‍♂️ Workout
+- 📖 Reading the Quran
+
+🌐 **Try it now:** [https://habit.saaifshuvo.online](https://habit.saaifshuvo.online)
+
+---
+
+## 🚀 Start Your Journey to a Better You
+
+### 👉 What can you do?
+
+✅ **Create your first habit**  
+Customize your own habits or choose from default habits like Prayer, Water, Workout.
+
+✅ **Add multiple tasks under each habit**  
+e.g., Prayer → Fajr, Dhuhr, Asr, Maghrib, Isha  
+e.g., Workout → Pushups, Walk 15 mins
+
+✅ **Daily Check-ins with Calendar Tracking**  
+Mark your completed tasks every day and see your progress in the calendar view.
+
+✅ **Motivational Dashboard**  
+Includes an inspirational quote and clean habit visualization.
+
+✅ **Auto Points System**  
+Each task gives you customizable points. Track daily, weekly, and monthly consistency.
+
+✅ **Edit/Delete Habits and Tasks**  
+Everything is manageable — update your routine anytime.
+
+✅ **Secure Login System**  
+JWT-based login/signup to keep your data safe.
+
+---
+
+## 👇 How to Use (As a User)
+
+1. **Visit** 👉 [habit.saaifshuvo.online](https://habit.saaifshuvo.online)
+2. **Sign up / Login**
+3. **Choose default habits or create your own**
+4. **Click on a habit card → view & complete tasks**
+5. **Come back daily, stay consistent!**
+
+---
+
+## 💻 Technologies Used
+
+- **Frontend**: React + TailwindCSS
+- **Backend**: Node.js + Express
+- **Database**: PostgreSQL
+- **Auth**: JWT + Bcrypt
+- **Monitoring**: Prometheus
+- **Server Tools**: PM2, NGINX, UFW, SSH (hosted on Ubuntu via WSL2)
+
+---
 
 ---
 
@@ -102,7 +159,7 @@ sudo apt install nginx
 sudo nano /etc/nginx/sites-available/habitlife
 ```
 
-**Example Config:**
+**Config:**
 ```nginx
 server {
     listen 80;
