@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { FaSignOutAlt,FaTimes, FaUserCircle, FaEdit, FaTasks, FaListAlt, FaTrashAlt, FaPen,FaPlus } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard({ token, onLogout }) {
   
