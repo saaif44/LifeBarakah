@@ -7,7 +7,7 @@ A simple yet powerful full-stack habit tracker to help you build and stay consis
 - 🏃‍♂️ Workout
 - 📖 Reading the Quran
 
-🌐 **Try it now:** [https://habit.saaifshuvo.online](https://habit.saaifshuvo.online)
+🌐 **Try it now:** [https://habit.saaifshuvo.online](http://habit.saaifshuvo.online)
 
 ---
 
