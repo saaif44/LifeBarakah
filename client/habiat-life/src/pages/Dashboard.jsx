@@ -15,11 +15,14 @@ export default function Dashboard({ token, onLogout }) {
   const getLocalDateString = () => {
     const local = new Date();
     local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
-    return local.toISOString().split('T')[0];
+    return now.toISOString().split('T')[0];
   };
   
   
   const isToday = selectedDate === getLocalDateString();
+
+  console.log('Today:', getLocalDateString()); // e.g. "2025-04-16"
+  console.log('isToday?', isToday);
   
   const [showTimeMachineWarning, setShowTimeMachineWarning] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -51,7 +54,7 @@ export default function Dashboard({ token, onLogout }) {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/me', {
+      const res = await fetch('https://habit.saaifshuvo.online/api/auth/login/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -70,7 +73,7 @@ export default function Dashboard({ token, onLogout }) {
 
   const handleProfileUpdate = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/update', {
+      const res = await fetch('https://habit.saaifshuvo.online/api/auth/login/api/auth/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +101,7 @@ export default function Dashboard({ token, onLogout }) {
     // }
     // setShowTimeMachineWarning(false);
     try {
-      await fetch(`http://localhost:5000/api/habits/task/checkin/${taskId}`, {
+      await fetch(`https://habit.saaifshuvo.online/api/habits/task/checkin/${taskId}`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -116,7 +119,7 @@ export default function Dashboard({ token, onLogout }) {
   const handleDeleteHabit = async (habitId) => {
     if (!window.confirm('Delete this habit?')) return;
     try {
-      await fetch(`http://localhost:5000/api/habits/${habitId}`, {
+      await fetch(`https://habit.saaifshuvo.online/api/habits/${habitId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -128,10 +131,10 @@ export default function Dashboard({ token, onLogout }) {
 
   const fetchAllTasks = async (date) => {
     try {
-      const habitRes = await fetch('http://localhost:5000/api/habits', {
+      const habitRes = await fetch('https://habit.saaifshuvo.online/api/habits', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const taskRes = await fetch(`http://localhost:5000/api/habits/all-tasks?date=${date}`, {
+      const taskRes = await fetch(`https://habit.saaifshuvo.online/api/habits/all-tasks?date=${date}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const habitsData = await habitRes.json();
@@ -155,7 +158,7 @@ export default function Dashboard({ token, onLogout }) {
 
   const handleAddHabit = async () => {
     try {
-      await fetch('http://localhost:5000/api/habits', {
+      await fetch('https://habit.saaifshuvo.online/api/habits', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,7 +185,7 @@ export default function Dashboard({ token, onLogout }) {
 
   const submitHabitEdit = async () => {
     try {
-      await fetch(`http://localhost:5000/api/habits/${editingHabit.habit_id}`, {
+      await fetch(`https://habit.saaifshuvo.online/api/habits/${editingHabit.habit_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +205,7 @@ export default function Dashboard({ token, onLogout }) {
   const handleDeleteTask = async (taskId) => {
     if (!window.confirm('Delete this task?')) return;
     try {
-      await fetch(`http://localhost:5000/api/habits/task/${taskId}`, {
+      await fetch(`https://habit.saaifshuvo.online/api/habits/task/${taskId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -215,7 +218,7 @@ export default function Dashboard({ token, onLogout }) {
 
   const submitTaskEdit = async (taskId) => {
     try {
-      await fetch(`http://localhost:5000/api/habits/task/${taskId}`, {
+      await fetch(`https://habit.saaifshuvo.online/api/habits/task/${taskId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +242,7 @@ export default function Dashboard({ token, onLogout }) {
     if (!newTaskTitle.trim()) return;
   
     try {
-      const response = await fetch(`http://localhost:5000/api/habits/${habitId}/tasks`, {
+      const response = await fetch(`https://habit.saaifshuvo.online/api/habits/${habitId}/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
