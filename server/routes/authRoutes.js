@@ -6,6 +6,12 @@ const { createHabit, addHabitTask } = require('../models/Habit');
 const protect = require('../middleware/authMiddleware');
 require('dotenv').config();
 
+const client = require('prom-client');
+const loginCounter = new client.Counter({
+  name: 'login_requests_total',
+  help: 'Total number of login attempts'
+});
+
 const router = express.Router();
 
 const defaultHabits = [
@@ -63,6 +69,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token, user });
+    loginCounter.inc();
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });
   }

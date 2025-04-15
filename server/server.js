@@ -3,6 +3,13 @@ const client = require('prom-client');
 const collectDefaultMetrics = client.collectDefaultMetrics;
 collectDefaultMetrics();
 
+const responseTimeHistogram = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'code'],
+  buckets: [0.1, 0.3, 0.5, 1, 2, 5]
+});
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -10,6 +17,8 @@ const authRoutes = require('./routes/authRoutes');
 const habitRoutes = require('./routes/habitRoutes');
 const pool = require('./config/db');
 // const protect = require('./middleware/authMiddleware');
+
+
 
 
 const app = express();
@@ -26,6 +35,15 @@ app.get('/metrics', async (req, res) => {
     res.status(500).end(err);
   }
 });
+
+app.use((req, res, next) => {
+  const end = responseTimeHistogram.startTimer();
+  res.on('finish', () => {
+    end({ method: req.method, route: req.path, code: res.statusCode });
+  });
+  next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 
